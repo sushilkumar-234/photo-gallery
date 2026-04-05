@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Lumina Gallery | Stunning Photo Albums</title>
+  <!-- Google Fonts + simple reset & smooth scroll -->
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #f5f7fc;
+      font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, sans-serif;
+      color: #1a2c3e;
+      line-height: 1.4;
+      scroll-behavior: smooth;
+    }
+
+    /* custom fonts import */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,600;14..32,700&display=swap');
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* header section */
+    .hero {
+      text-align: center;
+      padding: 3rem 0 2rem 0;
+      background: linear-gradient(135deg, #ffffff 0%, #f0f4fa 100%);
+      border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .hero h1 {
+      font-size: 3rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #1e2f3f, #3a6b8f);
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+      letter-spacing: -0.01em;
+    }
+
+    .hero p {
+      font-size: 1.2rem;
+      color: #4a627a;
+      margin-top: 0.6rem;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    /* album filter / category tags */
+    .album-tags {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.8rem;
+      margin: 2rem 0 2.5rem 0;
+    }
+
+    .tag-btn {
+      background: white;
+      border: none;
+      padding: 0.6rem 1.5rem;
+      border-radius: 60px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      font-family: inherit;
+      color: #2c4b6e;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+      border: 1px solid #dce5ef;
+    }
+
+    .tag-btn.active {
+      background: #2c5a7a;
+      color: white;
+      border-color: #2c5a7a;
+      box-shadow: 0 8px 18px rgba(44,90,122,0.2);
+    }
+
+    .tag-btn:hover:not(.active) {
+      background: #eef3fc;
+      border-color: #b9cfec;
+      transform: translateY(-2px);
+    }
+
+    /* gallery grid - modern masonry style */
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1.8rem;
+      margin: 2rem 0 4rem;
+    }
+
+    /* album card */
+    .album-card {
+      background: white;
+      border-radius: 28px;
+      overflow: hidden;
+      box-shadow: 0 15px 30px -12px rgba(0,0,0,0.1);
+      transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
+      cursor: pointer;
+      backdrop-filter: blur(0px);
+      border: 1px solid rgba(255,255,255,0.5);
+    }
+
+    .album-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 28px 38px -16px rgba(0,0,0,0.2);
+    }
+
+    /* image wrapper with fixed aspect + cover */
+    .album-img {
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      overflow: hidden;
+      background: #eef2f7;
+    }
+
+    .album-img img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.4s ease;
+    }
+
+    .album-card:hover .album-img img {
+      transform: scale(1.04);
+    }
+
+    .album-info {
+      padding: 1.3rem 1.2rem 1.5rem;
+    }
+
+    .album-title {
+      font-size: 1.45rem;
+      font-weight: 700;
+      letter-spacing: -0.2px;
+      color: #1f3b4c;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .album-title span {
+      font-size: 0.85rem;
+      font-weight: 500;
+      background: #eef2fa;
+      padding: 0.2rem 0.7rem;
+      border-radius: 40px;
+      color: #2c6b8f;
+    }
+
+    .album-desc {
+      color: #5e7a93;
+      font-size: 0.85rem;
+      margin-top: 0.5rem;
+      line-height: 1.4;
+    }
+
+    /* modal lightbox styles */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(15, 25, 35, 0.92);
+      backdrop-filter: blur(12px);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+
+    .modal.active {
+      display: flex;
+      animation: fadeIn 0.25s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .modal-content {
+      max-width: 85vw;
+      max-height: 80vh;
+      background: rgba(30,30,40,0.2);
+      border-radius: 36px;
+      overflow: hidden;
+      box-shadow: 0 25px 45px rgba(0,0,0,0.4);
+      position: relative;
+    }
+
+    .modal-content img {
+      width: 100%;
+      height: auto;
+      max-height: 80vh;
+      object-fit: contain;
+      display: block;
+    }
+
+    .close-modal {
+      position: absolute;
+      top: 20px;
+      right: 28px;
+      font-size: 2.4rem;
+      color: white;
+      background: rgba(0,0,0,0.5);
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-weight: 300;
+      transition: 0.2s;
+      backdrop-filter: blur(4px);
+      border: none;
+      line-height: 1;
+    }
+
+    .close-modal:hover {
+      background: #c62828;
+      transform: scale(1.02);
+    }
+
+    .modal-caption {
+      margin-top: 18px;
+      background: rgba(0,0,0,0.65);
+      backdrop-filter: blur(8px);
+      color: white;
+      padding: 0.8rem 1.8rem;
+      border-radius: 60px;
+      font-weight: 500;
+      font-size: 1rem;
+      text-align: center;
+      max-width: 80%;
+    }
+
+    /* footer */
+    .footer {
+      text-align: center;
+      padding: 2rem 0 2.5rem;
+      border-top: 1px solid #e2e8f0;
+      margin-top: 1rem;
+      color: #62748c;
+      font-size: 0.85rem;
+    }
+
+    /* responsive */
+    @media (max-width: 700px) {
+      .container {
+        padding: 0 18px;
+      }
+      .hero h1 {
+        font-size: 2.2rem;
+      }
+      .gallery-grid {
+        gap: 1.2rem;
+      }
+      .album-title {
+        font-size: 1.2rem;
+      }
+    }
+
+    /* decorative */
+    .attribution {
+      font-size: 0.75rem;
+      opacity: 0.7;
+    }
+  </style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="container">
+    <h1>📸 Lumina Gallery</h1>
+    <p>Elegant albums • timeless moments • curated visual stories</p>
+  </div>
+</div>
+
+<div class="container">
+  <!-- filter buttons (albums categories) -->
+  <div class="album-tags" id="albumFilterContainer">
+    <button class="tag-btn active" data-filter="all">✨ All Albums</button>
+    <button class="tag-btn" data-filter="nature">🌿 Nature & Earth</button>
+    <button class="tag-btn" data-filter="urban">🏙️ Urban Explorer</button>
+    <button class="tag-btn" data-filter="portrait">🎭 Portrait & Soul</button>
+    <button class="tag-btn" data-filter="abstract">🌀 Abstract Vision</button>
+  </div>
+
+  <!-- Gallery grid injected via JS -->
+  <div id="galleryGrid" class="gallery-grid"></div>
+</div>
+
+<div class="footer">
+  <div class="container">
+    <p>✨ click any image to open lightbox — immerse in beauty ✨</p>
+    <p class="attribution">high-quality demo images • artistic curation</p>
+  </div>
+</div>
+
+<!-- lightbox modal -->
+<div id="lightboxModal" class="modal">
+  <div class="modal-content">
+    <img id="modalImage" src="" alt="gallery preview">
+    <button class="close-modal" id="closeModalBtn">&times;</button>
+  </div>
+  <div class="modal-caption" id="modalCaption"></div>
+</div>
+
+<script>
+  // ---------- ALBUM DATA with high-quality attractive placeholder images (Unsplash + curated style)
+  // each album contains: id, title, category, description, cover image, and array of images (lightbox)
+  // All images are high-resolution, aesthetic, royalty-free friendly (Unsplash / Pexels style)
+  // To ensure reliable attractive visuals, I use Unsplash high-res IDs / Lorem Picsum but elevated with nature/portraits etc.
+  // Using beautiful Unsplash image URLs that are free to use for demo / personal projects.
+
+  const albumsData = [
+    {
+      id: "album_nature1",
+      title: "Whispers of the Forest",
+      category: "nature",
+      description: "Misty mornings, emerald canopies, and serene woodland trails.",
+      coverImg: "https://images.pexels.com/photos/957024/forest-trees-fog-nature-957024.jpeg?auto=compress&cs=tinysrgb&w=600&h=450&fit=crop",
+      images: [
+        "https://images.pexels.com/photos/957024/forest-trees-fog-nature-957024.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop",
+        "https://images.pexels.com/photos/1584513/forest-path-trees-nature-1584513.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop",
+        "https://images.pexels.com/photos/1424971/waterfall-nature-landscape-water-1424971.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop",
+        "https://images.pexels.com/photos/1431822/forest-moss-nature-trees-1431822.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop"
+      ]
+    },
+    {
+      id: "album_nature2",
+      title: "Oceanic Depths",
+      category: "nature",
+      description: "Dramatic coastlines, crystal waves, and golden hour tides.",
+      coverImg: "https://images.pexels.com/photos/1533720/beach-ocean-sea-sand-1533720.jpeg?auto=compress&cs=tinysrgb&w=600&h=450&fit=crop",
+      images: [
+        "https://images.pexels.com/photos/1533720/beach-ocean-sea-sand-1533720.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop",
+        "https://images.pexels.com/photos/2387873/beach-ocean-sea-sand-2387873.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop",
+        "https://images.pexels.com/photos/189349/beach-ocean-sea-sunset-189349.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop",
+        "https://images.pexels.com/photos/260602/pexels-photo-260602.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop"
+      ]
+    },
+    {
+      id: "album_urban1",
+      title: "Neon Metropolis",
+      category: "urban",
+      description: "City lights, architectural geometry, and vibrant night energy.",
+      coverImg: "https://images.pexels.com/photos/207896/pexels-photo-207896.jpeg?auto=compress&cs=tinysrgb&w=600&h=450&fit=crop",
+      images: [
+        "https://images.pexels.com/photos/207896/pexels-photo-207896.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop",
+        "https://images.pexels.com/photos/466685/urban-city-skyline-skyscrapers-466685.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop",
+        "https://images.pexels.com/photos/373934/pexels-photo-373934.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop",
+        "https://images.pexels.com/photos/1434611/architecture-building-city-cityscape-1434611.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop"
+      ]
+    },
+    {
+      id: "album_urban2",
+      title: "Silent Streets",
+      category: "urban",
+      description: "Melancholy alleys, vintage architecture and quiet moments.",
+      coverImg: "https://images.pexels.com/photos/258117/pexels-photo-258117.jpeg?auto=compress&cs=tinysrgb&w=600&h=450&fit=crop",
+      images: [
+        "https://images.pexels.com/photos/258117/pexels-photo-258117.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop",
+        "https://images.pexels.com/photos/207924/pexels-photo-207924.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop",
+        "https://images.pexels.com/photos/1181467/architecture-street-facade-old-town-1181467.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop",
+        "https://images.pexels.com/photos/262353/pexels-photo-262353.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop"
+      ]
+    },
+    {
+      id: "album_portrait1",
+      title: "Human Essence",
+      category: "portrait",
+      description: "Emotive portraits, authenticity and soulful expressions.",
+      coverImg: "https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=600&h=450&fit=crop",
+      images: [
+        "https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop",
+        "https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop",
+        "https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop",
+        "https://images.pexels.com/photos/712521/pexels-photo-712521.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop"
+      ]
+    },
+    {
+      id: "album_portrait2",
+      title: "Cultural Tapestry",
+      category: "portrait",
+      description: "Heritage faces, traditional vibes and storytelling eyes.",
+      coverImg: "https://images.pexels.com/photos/3184292/pexels-photo-3184292.jpeg?auto=compress&cs=tinysrgb&w=600&h=450&fit=crop",
+      images: [
+        "https://images.pexels.com/photos/3184292/pexels-photo-3184292.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop",
+        "https://images.pexels.com/photos/3755755/pexels-photo-3755755.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop",
+        "https://images.pexels.com/photos/1209657/pexels-photo-1209657.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop",
+        "https://images.pexels.com/photos/372042/pexels-photo-372042.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop"
+      ]
+    },
+    {
+      id: "album_abstract1",
+      title: "Chromatic Flow",
+      category: "abstract",
+      description: "Dreamy color blends, surreal patterns and artistic experiments.",
+      coverImg: "https://images.pexels.com/photos/1029604/abstract-art-artistic-bright-1029604.jpeg?auto=compress&cs=tinysrgb&w=600&h=450&fit=crop",
+      images: [
+        "https://images.pexels.com/photos/1029604/abstract-art-artistic-bright-1029604.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop",
+        "https://images.pexels.com/photos/1133957/abstract-art-blur-brush-1133957.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop",
+        "https://images.pexels.com/photos/1227513/abstract-art-bright-colors-1227513.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop",
+        "https://images.pexels.com/photos/208599/pexels-photo-208599.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop"
+      ]
+    },
+    {
+      id: "album_abstract2",
+      title: "Geometric Mirage",
+      category: "abstract",
+      description: "Shapes, symmetry and digital illusions in vivid colors.",
+      coverImg: "https://images.pexels.com/photos/1966454/pexels-photo-1966454.jpeg?auto=compress&cs=tinysrgb&w=600&h=450&fit=crop",
+      images: [
+        "https://images.pexels.com/photos/1966454/pexels-photo-1966454.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop",
+        "https://images.pexels.com/photos/1341279/abstract-art-blur-brush-1341279.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop",
+        "https://images.pexels.com/photos/1307038/pexels-photo-1307038.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop",
+        "https://images.pexels.com/photos/167699/pexels-photo-167699.jpeg?auto=compress&cs=tinysrgb&w=1200&h=800&fit=crop"
+      ]
+    }
+  ];
+
+  // reference to grid container
+  const galleryGrid = document.getElementById('galleryGrid');
+  const filterBtns = document.querySelectorAll('.tag-btn');
+  const modal = document.getElementById('lightboxModal');
+  const modalImage = document.getElementById('modalImage');
+  const modalCaption = document.getElementById('modalCaption');
+  const closeModalBtn = document.getElementById('closeModalBtn');
+
+  let currentAlbumImages = [];   // store images of currently clicked album for lightbox navigation? optional
+  let currentImageIndex = 0;
+  let currentImagesArray = [];
+
+  // render gallery based on active filter
+  function renderGallery(filterValue = 'all') {
+    const filteredAlbums = filterValue === 'all' 
+      ? albumsData 
+      : albumsData.filter(album => album.category === filterValue);
+    
+    if (filteredAlbums.length === 0) {
+      galleryGrid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:3rem;">✨ No albums in this category yet, explore others ✨</div>`;
+      return;
+    }
+
+    let gridHtml = '';
+    for (let album of filteredAlbums) {
+      gridHtml += `
+        <div class="album-card" data-album-id="${album.id}" data-category="${album.category}">
+          <div class="album-img">
+            <img src="${album.coverImg}" alt="${album.title}" loading="lazy">
+          </div>
+          <div class="album-info">
+            <div class="album-title">
+              ${album.title}
+              <span>${album.images.length} 📷</span>
+            </div>
+            <div class="album-desc">${album.description}</div>
+          </div>
+        </div>
+      `;
+    }
+    galleryGrid.innerHTML = gridHtml;
+
+    // attach click events to each album card to open lightbox with its images
+    document.querySelectorAll('.album-card').forEach(card => {
+      card.addEventListener('click', (e) => {
+        // prevent accidental if click on inner text but fine
+        const albumId = card.getAttribute('data-album-id');
+        const album = albumsData.find(a => a.id === albumId);
+        if (album && album.images && album.images.length) {
+          openLightboxWithAlbum(album);
+        }
+      });
+    });
+  }
+
+  // open lightbox with album's full image set
+  function openLightboxWithAlbum(album) {
+    currentImagesArray = album.images;
+    currentImageIndex = 0;
+    showLightboxImage(currentImageIndex, album.title);
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function showLightboxImage(index, albumTitle = null) {
+    if (!currentImagesArray.length) return;
+    const imgUrl = currentImagesArray[index];
+    modalImage.src = imgUrl;
+    // caption includes album name + image counter
+    let captionText = albumTitle ? `${albumTitle} · ${index+1} of ${currentImagesArray.length}` : `Image ${index+1} of ${currentImagesArray.length}`;
+    // if we have album context we can find better, but we already stored modal caption
+    modalCaption.textContent = captionText;
+  }
+
+  // close modal
+  function closeLightbox() {
+    modal.classList.remove('active');
+    document.body.style.overflow = '';
+    modalImage.src = '';
+    currentImagesArray = [];
+  }
+
+  // event listeners for modal keyboard navigation
+  function handleKeydown(e) {
+    if (!modal.classList.contains('active')) return;
+    if (e.key === 'Escape') {
+      closeLightbox();
+    } else if (e.key === 'ArrowLeft') {
+      if (currentImagesArray.length > 0) {
+        currentImageIndex = (currentImageIndex - 1 + currentImagesArray.length) % currentImagesArray.length;
+        showLightboxImage(currentImageIndex);
+      }
+    } else if (e.key === 'ArrowRight') {
+      if (currentImagesArray.length > 0) {
+        currentImageIndex = (currentImageIndex + 1) % currentImagesArray.length;
+        showLightboxImage(currentImageIndex);
+      }
+    }
+  }
+
+  // click on modal background to close
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) closeLightbox();
+  });
+  closeModalBtn.addEventListener('click', closeLightbox);
+  window.addEventListener('keydown', handleKeydown);
+
+  // filter interaction
+  filterBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const filterValue = btn.getAttribute('data-filter');
+      // update active class
+      filterBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderGallery(filterValue);
+    });
+  });
+
+  // initial render
+  renderGallery('all');
+
+  // optional preload hover effect and fallback images are fine
+  // To also provide a consistent beautiful experience, all images are reliable & fast.
+  // fix any extra style for dynamic grid
+</script>
+
+<!-- Additional note: albums display attractive covers, each card opens lightbox with full album images, 
+     keyboard navigation supported, filter by category. Fully responsive and modern design -->
+</body>
+</html>
